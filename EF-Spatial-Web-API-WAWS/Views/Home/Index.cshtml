@@ -1,0 +1,57 @@
+﻿<div id="body">
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h2>Where are all the good chicken wings in the Puget Sound Area?</h2>
+            </hgroup>
+        </div>
+    </section>
+    <section class="content-wrapper main-content clear-fix">
+        <table>
+            <tbody data-bind="foreach: locations">
+                <tr>
+                    <td data-bind="text: name"></td>
+                    <td data-bind="text: address"></td>
+                    <td data-bind="text: distance"></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+
+
+@section scripts{
+    <script src="~/Scripts/knockout-2.1.0.js"></script>
+    <script type="text/javascript">
+
+
+        function pageViewModel() {
+            var self = this;
+            self.locations = ko.observableArray([]);
+            self.handle_geolocation_query = function (position) {
+                var url = '/api/location?latitude=' + position.coords.latitude + '&longitude=' + position.coords.longitude;
+                $.get(url, function (data) {
+                    $(data).each(function (i, item) {
+                        var newLocation = new locationViewModel(item.Name, item.Address, item.Distance);
+                        self.locations.push(newLocation);
+                    });
+                });
+            };
+            self.initialize = function () {
+                navigator.geolocation.getCurrentPosition(self.handle_geolocation_query);
+            }
+        };
+
+
+        function locationViewModel(nm, addr, dist) {
+            this.name = ko.observable(nm);
+            this.address = ko.observable(addr);
+            this.distance = ko.observable(parseFloat(dist).toFixed(2) + ' miles');
+        };
+
+
+        var model = new pageViewModel();
+        ko.applyBindings(model);
+        model.initialize();
+    </script>
+}
